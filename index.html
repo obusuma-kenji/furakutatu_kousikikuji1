@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ハピスパみくじ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background 0.5s ease;
+            overflow: hidden;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 650px;
+            width: 90%;
+            position: relative;
+        }
+        
+        h1 { 
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #333;
+        }
+        
+        .kuji-box {
+            width: 200px;
+            height: 250px;
+            margin: 0 auto 40px;
+            position: relative;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        .box {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #8B4513, #A0522D);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            transition: transform 0.1s;
+        }
+        
+        .box:active {
+            transform: scale(0.98);
+        }
+        
+        .box.shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        
+        .stick {
+            position: absolute;
+            width: 15px;
+            height: 180px;
+            background: linear-gradient(to right, #CD853F, #DEB887);
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .box.pulling .stick {
+            top: -80px;
+        }
+        
+        .instruction {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        #result-container {
+            min-height: 200px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        #result-container.show {
+            opacity: 1;
+        }
+        
+        .category {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+        
+        #fortune {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 10px 0 20px;
+            color: #222;
+            background: rgba(255,255,255,0.95);
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            line-height: 1.5;
+        }
+        
+        #message {
+            font-size: 1.15rem;
+            line-height: 1.9;
+            color: #333;
+            padding: 25px;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: left;
+        }
+        
+        .reset-btn {
+            margin-top: 30px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        .reset-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .reset-btn:active {
+            transform: translateY(0);
+        }
+        
+        .hidden { display: none; }
+        
+        /* スマホ対応 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                width: 95%;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 30px;
+            }
+            
+            .kuji-box {
+                width: 150px;
+                height: 200px;
+                margin: 0 auto 30px;
+            }
+            
+            .stick {
+                width: 12px;
+                height: 140px;
+            }
+            
+            .instruction {
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
+            
+            .category {
+                font-size: 1rem;
+            }
+            
+            #fortune {
+                font-size: 1.7rem;
+                padding: 12px 20px;
+                margin: 10px 0 15px;
+            }
+            
+            #message {
+                font-size: 1rem;
+                padding: 20px;
+                line-height: 1.8;
+            }
+            
+            .reset-btn {
+                padding: 10px 25px;
+                font-size: 0.95rem;
+                margin-top: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .kuji-box {
+                width: 120px;
+                height: 160px;
+            }
+            
+            .stick {
+                width: 10px;
+                height: 110px;
+            }
+            
+            #fortune {
+                font-size: 1.4rem;
+                padding: 10px 15px;
+            }
+            
+            #message {
+                font-size: 0.95rem;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🌸 ハピスパみくじ</h1>
+    
+    <div id="kuji-section">
+        <div class="instruction">箱をタップして、おみくじを引こう</div>
+        <div class="kuji-box" id="kuji-trigger">
+            <div class="box" id="box">
+                <div class="stick"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="result-container">
+        <div class="category" id="category"></div>
+        <div id="fortune"></div>
+        <div id="message"></div>
+        <button class="reset-btn" onclick="reset()">もう一度引く</button>
+    </div>
+</div>
+
+<script>
+// AudioContext for sound effects
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
+
+// ドラムロール音
+function playDrumroll() {
+    const duration = 1.5;
+    const now = audioContext.currentTime;
+    
+    for(let i = 0; i < 30; i++) {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        
+        osc.frequency.value = 100 + Math.random() * 50;
+        osc.type = 'square';
+        
+        const time = now + (i * duration / 30);
+        gain.gain.setValueAtTime(0.1, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+        
+        osc.start(time);
+        osc.stop(time + 0.05);
+    }
+}
+
+// 結果音（当たり）
+function playResultSound() {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    const now = audioContext.currentTime;
+    
+    osc.frequency.setValueAtTime(523, now); // C5
+    osc.frequency.setValueAtTime(659, now + 0.1); // E5
+    osc.frequency.setValueAtTime(784, now + 0.2); // G5
+    
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+    
+    osc.start(now);
+    osc.stop(now + 0.4);
+}
+
+const fortunes = [
+    // 【結実（けつじつ）】 収穫と継承
+    {
+        category: "結実（けつじつ）─ 収穫と継承",
+        title: "積み上げてきた努力が実を結びます。",
+        message: "この調子で続けましょう。あなたの歩みは、周囲の誰かにとっての希望という名の「相似形」になります。",
+        bg: "linear-gradient(135deg, #D4AF37 0%, #FFD700 100%)"
+    },
+    {
+        category: "結実（けつじつ）─ 収穫と継承",
+        title: "謙虚に知恵を受け取れています。",
+        message: "人に相談できるようになったのは、器が広がった証拠です。その素直さが、さらなる豊かさを引き寄せます。",
+        bg: "linear-gradient(135deg, #D4AF37 0%, #FFD700 100%)"
+    },
+    {
+        category: "結実（けつじつ）─ 収穫と継承",
+        title: "責任の重さは、豊かさの予兆です。",
+        message: "責任を引き受ける覚悟が、あなたを世界の中心（核）へと押し上げます。重責を誇りに感じてください。",
+        bg: "linear-gradient(135deg, #D4AF37 0%, #FFD700 100%)"
+    },
+    {
+        category: "結実（けつじつ）─ 収穫と継承",
+        title: "自分の役割を全うできています。",
+        message: "全体図の中での立ち位置を認識しましょう。あなたが役割を果たすことで、世界全体の図形が完成します。",
+        bg: "linear-gradient(135deg, #D4AF37 0%, #FFD700 100%)"
+    },
+    
+    // 【大樹（だいじゅ）】 信頼と安定
+    {
+        category: "大樹（だいじゅ）─ 信頼と安定",
+        title: "周囲は、あなたを深く信頼しています。",
+        message: "あなたが自分を信じた分だけ、世界もあなたを信じます。信頼は、日々の静かな積み上げから生まれます。",
+        bg: "linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%)"
+    },
+    {
+        category: "大樹（だいじゅ）─ 信頼と安定",
+        title: "揺るぎない確かな成長を遂げています。",
+        message: "感情に振り回されず、判断で動ける時間が増えました。内側の静寂が、外側の世界の秩序を作ります。",
+        bg: "linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%)"
+    },
+    {
+        category: "大樹（だいじゅ）─ 信頼と安定",
+        title: "広い視野で相手を思いやれています。",
+        message: "他者の視点を取り入れることで、世界の解像度が上がります。その慈しみが、あなた自身の世界を広げます。",
+        bg: "linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%)"
+    },
+    {
+        category: "大樹（だいじゅ）─ 信頼と安定",
+        title: "戦略的に休息を取りましょう。",
+        message: "大きな樹ほど、深い静止の時間を必要とします。余白を作ることで、新しい展開を描き込むことができます。",
+        bg: "linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%)"
+    },
+    
+    // 【開花（かいか）】 成果と喜び
+    {
+        category: "開花（かいか）─ 成果と喜び",
+        title: "「できる」という確信を持ちましょう。",
+        message: "「絶対できる」と信じ切る力が、未来の図形を確定させます。内側の確信こそが、現実を動かす燃料です。",
+        bg: "linear-gradient(135deg, #EC407A 0%, #F48FB1 100%)"
+    },
+    {
+        category: "開花（かいか）─ 成果と喜び",
+        title: "自分で自分を最大限に褒めましょう。",
+        message: "あなたが自分を認めれば、世界もあなたを認め始めます。承認の相似形は、まず自分の中から始まります。",
+        bg: "linear-gradient(135deg, #EC407A 0%, #F48FB1 100%)"
+    },
+    {
+        category: "開花（かいか）─ 成果と喜び",
+        title: "自己肯定に値する行動を積みましょう。",
+        message: "自分を裏切らない行動こそが、本物の自信を作ります。思考をこねくり回すより、まず動くことです。",
+        bg: "linear-gradient(135deg, #EC407A 0%, #F48FB1 100%)"
+    },
+    {
+        category: "開花（かいか）─ 成果と喜び",
+        title: "自分に向き合う勇気を持てています。",
+        message: "暗部から目を逸らさない姿勢そのものが、確かな成長です。その勇気が人生を照らす光になります。",
+        bg: "linear-gradient(135deg, #EC407A 0%, #F48FB1 100%)"
+    },
+    {
+        category: "開花（かいか）─ 成果と喜び",
+        title: "行動のブレーキが外れ始めています。",
+        message: "怖さや面倒さに振り回されなくなりました。最初の一点を置く勇気が、全体の完成度を決定づけます。",
+        bg: "linear-gradient(135deg, #EC407A 0%, #F48FB1 100%)"
+    },
+    
+    // 【若葉（わかば）】 行動と挑戦
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "身の回りを整えましょう。",
+        message: "思考と周囲は相似形です。部屋や働く環境を整えることは、あなたの頭の中を整理することと同じです。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "変化を恐れず、一点を動かしましょう。",
+        message: "今の角度をほんの少し変えるだけで、未来の図形は劇的に変わります。本気で行動を開始しましょう。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "「これ以上無理」という壁を疑いましょう。",
+        message: "限界だと思っている境界線は、あなたが引いた点線に過ぎません。少し休んで、また歩き出せばよいのです。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "自分だけの個性を大切にしましょう。",
+        message: "全員に好かれる必要はありません。あなたがあなたであるほど、本当に合う人との縁が鮮明になります。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "自分の心に優しく寄り添いましょう。",
+        message: "内側の孤独が癒えれば、外側の人間関係も温かなものに変わります。自分を慈しむことがすべての雛形です。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "結果が出ない時は、地図を確認しましょう。",
+        message: "頑張りが足りないのではなく、方向が違うだけかもしれません。正しい努力の方向を再設定してください。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "求められている「ちゃんと」を知りましょう。",
+        message: "自分の基準だけで動いていませんか。全体を俯瞰し、何が求められているかを冷静に観察しましょう。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "努力を「成果」に直結させましょう。",
+        message: "ただ動くことを「努力」と呼んで安心していませんか。本質的な目的に向かっているか問いかけましょう。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    {
+        category: "若葉（わかば）─ 行動と挑戦",
+        title: "自分自身に期待してみましょう。",
+        message: "傷つくのを恐れて諦めるのはやめましょう。期待できる自分になれば、世界は可能性に満ちた場所に変わります。",
+        bg: "linear-gradient(135deg, #8BC34A 0%, #AED581 100%)"
+    },
+    
+    // 【種子（しゅし）】 本質と潜伏
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "焦らず、土の下で根を伸ばしましょう。",
+        message: "地上に変化が見えない時期こそ、土台が整う大切な時です。見えない部分の成長を信じてください。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "目の前の人は、あなたを映す鏡です。",
+        message: "相手の中に何を見るかが、あなたの現在地を教えます。相手は過去、あるいは未来のあなたかもしれません。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "他人の休息を許せていますか？",
+        message: "休めないのは、あなたが休む人を責めているからです。他人に許可できないことは、自分にも許可できません。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "「自分は悪くない」という罠に注意しましょう。",
+        message: "外側のせいにした瞬間、あなたは主導権を失います。自分の中にある「種」を探すことで、現実は変えられます。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "鏡の向こう側を直そうとしていませんか？",
+        message: "相手を変えようとするのは、鏡の中の像をいじるのと同じです。まず自分の内面を整えましょう。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "自分を丁寧に扱えていますか？",
+        message: "あなたが自分を雑に扱うから、人からも雑に扱われるのです。自分への接し方が、周囲への教育になります。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "まず、あなたから理解を示しましょう。",
+        message: "「分かってくれない」と嘆く前に、相手を知ろうとしましたか。投げかけた理解が、そのまま返ってきます。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "あなたの「正しさ」は、全体を幸せにするものですか？",
+        message: "正しいのに孤独なら、自分の視点だけで正解を定義している証拠です。広い視野で全体が調和する道を探しましょう。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "「つもり」と「事実」を分けましょう。",
+        message: "「やっているつもり」なのに報われない時は、細部に微細なズレがあります。厳しく点検してください。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "相手に「課題」を投影していませんか？",
+        message: "相手のせいだと思える出来事は、あなたの未完了の課題を映し出す、最高の学びのチャンスです。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "隠れた「得」に目を向けましょう。",
+        message: "「自分ばかり損をしている」と思う時、その裏で得ているメリットを隠していませんか。正直になりましょう。",
+        bg: "linear-gradient(135度, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "「できない理由」を深掘りしましょう。",
+        message: "分かっているのに動けないなら、変わらないことにメリットを感じているはずです。自分を直視しましょう。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "優先順位を明確にしましょう。",
+        message: "「時間がない」のは、思考が散らかっている相似形です。本当に大切な一点に集中してください。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "自信は、行動の後から付いてきます。",
+        message: "何もしていないのに自信がないのは正常な反応です。自信とは、積み上げた行動の結果として付着するものです。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "適性を語る前に、量をこなしましょう。",
+        message: "「向いていない」と決めるのは、習得のプロセスを十分に経てからでも遅くはありません。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "自ら扉を閉ざしていませんか？",
+        message: "「どうせ分かってもらえない」という諦めが、周囲を遠ざけます。扉の鍵は内側にしかありません。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "「現状維持」は「衰退」と同じです。",
+        message: "このままでいいと思った瞬間、収縮が始まります。フラクタルな世界に静止はないと心得ましょう。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    },
+    {
+        category: "種子（しゅし）─ 本質と潜伏",
+        title: "「嫌われるのが怖い」を優しさと勘違いしていませんか？",
+        message: "本物の優しさは、自分を大切にすることから始まります。媚びることをやめた時、真の調和が訪れます。",
+        bg: "linear-gradient(135deg, #5D4037 0%, #8D6E63 100%)"
+    }
+];
+
+let isDrawing = false;
+
+function drawKuji() {
+    if(isDrawing) return;
+    isDrawing = true;
+    
+    // AudioContext resume (for mobile)
+    audioContext.resume();
+    
+    const box = document.getElementById('box');
+    const kujiSection = document.getElementById('kuji-section');
+    const resultContainer = document.getElementById('result-container');
+    
+    // くじを引くアニメーション
+    box.classList.add('pulling');
+    playDrumroll();
+    
+    setTimeout(() => {
+        box.classList.remove('pulling');
+        box.classList.add('shake');
+    }, 500);
+    
+    setTimeout(() => {
+        box.classList.remove('shake');
+        
+        // ランダムに結果を選択
+        const result = fortunes[Math.floor(Math.random() * fortunes.length)];
+        
+        // 背景を変更
+        document.body.style.background = result.bg;
+        
+        // 結果を表示
+        document.getElementById('category').innerText = result.category;
+        document.getElementById('fortune').innerText = result.title;
+        document.getElementById('message').innerText = result.message;
+        
+        kujiSection.classList.add('hidden');
+        resultContainer.classList.add('show');
+        
+        playResultSound();
+        isDrawing = false;
+    }, 2000);
+}
+
+function reset() {
+    const kujiSection = document.getElementById('kuji-section');
+    const resultContainer = document.getElementById('result-container');
+    
+    resultContainer.classList.remove('show');
+    
+    setTimeout(() => {
+        kujiSection.classList.remove('hidden');
+        document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    }, 500);
+}
+
+// 初期背景
+document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+
+// イベントリスナー設定
+document.getElementById('kuji-trigger').addEventListener('click', drawKuji);
+document.getElementById('kuji-trigger').addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    drawKuji();
+});
+</script>
+</body>
+</html>
